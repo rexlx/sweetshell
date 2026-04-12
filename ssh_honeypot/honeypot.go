@@ -38,12 +38,16 @@ func (s *SSHHoneypot) Start() error {
 	config := &ssh.ServerConfig{
 		ServerVersion: "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1",
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
-			sessionID := hex.EncodeToString(c.SessionID())
+			host, _, _ := net.SplitHostPort(c.RemoteAddr().String())
 			s.AddStat(internal.Stat{
-				TransactionID: sessionID,
+				TransactionID: hex.EncodeToString(c.SessionID()),
+				Value:         host, // The searchable IP/Hostname
 				Time:          time.Now(),
-				Info:          fmt.Sprintf("Login Attempt from %s", c.RemoteAddr().String()),
-				Value:         fmt.Sprintf("user:%s pass:%s", c.User(), string(pass)),
+				Info:          "SSH Login Attempt",
+				Payload: map[string]interface{}{
+					"user": c.User(),
+					"pass": string(pass),
+				},
 			})
 
 			return nil, fmt.Errorf("password rejected for %q", c.User())
@@ -121,11 +125,13 @@ func (s *SSHHoneypot) ClearData() error {
 }
 
 func (s *SSHHoneypot) AddStat(stat internal.Stat) error {
+	// 1. Maintain in-memory stats for the legacy API if needed
 	s.Memory.Lock()
-	defer s.Memory.Unlock()
 	s.Stats = append(s.Stats, stat)
-	// fmt.Println(stat.Info)
-	return nil
+	s.Memory.Unlock()
+
+	// 2. Persist to Postgres using the global DB object
+	return internal.StoreActivity("ssh", stat)
 }
 
 func (s *SSHHoneypot) GetStats() ([]internal.Stat, error) {

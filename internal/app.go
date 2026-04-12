@@ -7,10 +7,11 @@ import (
 )
 
 type Stat struct {
-	TransactionID string    `json:"transaction_id"`
-	Info          string    `json:"info"`
-	Time          time.Time `json:"time"`
-	Value         string    `json:"value"`
+	TransactionID string                 `json:"transaction_id"`
+	Value         string                 `json:"value"`
+	Info          string                 `json:"info"`
+	Time          time.Time              `json:"time"`
+	Payload       map[string]interface{} `json:"payload"`
 }
 
 type Honeypot interface {
