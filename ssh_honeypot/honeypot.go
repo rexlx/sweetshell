@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"log"
@@ -37,8 +38,9 @@ func (s *SSHHoneypot) Start() error {
 	config := &ssh.ServerConfig{
 		ServerVersion: "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1",
 		PasswordCallback: func(c ssh.ConnMetadata, pass []byte) (*ssh.Permissions, error) {
+			sessionID := hex.EncodeToString(c.SessionID())
 			s.AddStat(internal.Stat{
-				TransactionID: string(c.SessionID()),
+				TransactionID: sessionID,
 				Time:          time.Now(),
 				Info:          fmt.Sprintf("Login Attempt from %s", c.RemoteAddr().String()),
 				Value:         fmt.Sprintf("user:%s pass:%s", c.User(), string(pass)),

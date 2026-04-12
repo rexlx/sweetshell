@@ -38,7 +38,7 @@ func NewApp(apiKey string, logRotationFrequency time.Duration) *App {
 		APIKey:              apiKey,
 		HoneyPots:           make(map[string]Honeypot),
 	}
-	app.Gateway.Handle("/stats/", app.AuthMiddleware(http.HandlerFunc(app.HandleGetStats)))
+	app.Gateway.Handle("GET /stats/{name}", app.AuthMiddleware(http.HandlerFunc(app.HandleGetStats)))
 	app.Gateway.Handle("/honeypots", app.AuthMiddleware(http.HandlerFunc(app.HandleListHoneypots)))
 	return app
 }
