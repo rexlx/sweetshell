@@ -31,13 +31,16 @@ type App struct {
 }
 
 func NewApp(apiKey string, logRotationFrequency time.Duration) *App {
-	return &App{
+	app := &App{
 		Gateway:             http.NewServeMux(),
 		LogRoationFrequency: logRotationFrequency,
 		StartTime:           time.Now(),
 		APIKey:              apiKey,
 		HoneyPots:           make(map[string]Honeypot),
 	}
+	app.Gateway.Handle("/stats/", app.AuthMiddleware(http.HandlerFunc(app.HandleGetStats)))
+	app.Gateway.Handle("/honeypots", app.AuthMiddleware(http.HandlerFunc(app.HandleListHoneypots)))
+	return app
 }
 
 func (a *App) AddHoneypot(name string, honeypot Honeypot) {

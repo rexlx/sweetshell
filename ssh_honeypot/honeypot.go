@@ -122,6 +122,7 @@ func (s *SSHHoneypot) AddStat(stat internal.Stat) error {
 	s.Memory.Lock()
 	defer s.Memory.Unlock()
 	s.Stats = append(s.Stats, stat)
+	// fmt.Println(stat.Info)
 	return nil
 }
 
