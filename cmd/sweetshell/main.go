@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/rexlx/sweetshell/internal"
@@ -15,6 +16,8 @@ func main() {
 
 	app.AddHoneypot("ssh", sshPot)
 
-	// Block forever
-	select {}
+	// Start the HTTP server for the API
+	if err := http.ListenAndServe(":8080", app.Gateway); err != nil {
+		panic(err)
+	}
 }
