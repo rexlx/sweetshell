@@ -21,14 +21,14 @@ type SSHHoneypot struct {
 	Stats    []internal.Stat
 	Port     int
 	listener net.Listener
-	stopChan chan struct{}
+	StopChan chan struct{}
 }
 
 func NewSSHHoneypot(port int) *SSHHoneypot {
 	return &SSHHoneypot{
 		Port:     port,
 		Stats:    make([]internal.Stat, 0),
-		stopChan: make(chan struct{}),
+		StopChan: make(chan struct{}),
 	}
 }
 
@@ -84,7 +84,7 @@ func (s *SSHHoneypot) Start() error {
 			conn, err := s.listener.Accept()
 			if err != nil {
 				select {
-				case <-s.stopChan:
+				case <-s.StopChan:
 					return
 				default:
 					log.Printf("Error accepting connection: %v", err)
@@ -110,7 +110,7 @@ func (s *SSHHoneypot) handleConnection(conn net.Conn, config *ssh.ServerConfig) 
 }
 
 func (s *SSHHoneypot) Stop() error {
-	close(s.stopChan)
+	close(s.StopChan)
 	if s.listener != nil {
 		return s.listener.Close()
 	}

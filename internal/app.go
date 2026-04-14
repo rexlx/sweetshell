@@ -49,6 +49,22 @@ func (a *App) AddHoneypot(name string, honeypot Honeypot) {
 	a.Memory.Lock()
 	defer a.Memory.Unlock()
 	a.HoneyPots[name] = honeypot
+
 }
 
-func (a *App) RotateLogs() {}
+func (a *App) RotateLogs(frequency time.Duration, stopch chan struct{}) {
+	ticker := time.NewTicker(frequency)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			a.Memory.Lock()
+			for _, hp := range a.HoneyPots {
+				hp.ClearData()
+			}
+			a.Memory.Unlock()
+		case <-stopch:
+			return
+		}
+	}
+}
